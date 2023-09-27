@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "bse-simulation"
+version = "0.1.0"
+description = "Bristol Stock Exchange basic simulation using python and streamlit for interaction and outputs."
+authors = ["Akshat Pande <akshat.pande@outlook.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+streamlit = "^1.27.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
