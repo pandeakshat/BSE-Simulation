@@ -1974,6 +1974,8 @@ def populate_market(traders_spec, traders, shuffle, verbose):
     return {'n_buyers': n_buyers, 'n_sellers': n_sellers}
 
 
+
+
 # customer_orders(): allocate orders to traders
 # parameter "os" is order schedule
 # os['timemode'] is either 'periodic', 'drip-fixed', 'drip-jitter', or 'drip-poisson'

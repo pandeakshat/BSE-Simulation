@@ -5,7 +5,7 @@ import numpy as np
 import csv
 import sys
 #Importing BSE.py Function for interaction.
-from BSE import market_session
+from BSE import market_session, populate_market
 
 def setup():
     st.markdown('''
@@ -373,7 +373,57 @@ def shock_market():
 def demo_simulator():
     st.markdown('''
                  ### <span style="color:green">Demo Simulator</span>
-                 ''', unsafe_allow_html=True)
+                 ''', unsafe_allow_html=True)  
+    start_time=0
+    end_time=60*st.slider("Select duration for Market Session", 1, 60, 10,1)
+    min_value=st.slider("Select Minimum Value for Chart Range", 10,100,80,10)
+    max_value=st.slider("Select Maximum Value for Chart Range", 110, 1000,320,10)
+    chart_range = (min_value, max_value)
+    st.write("Chart Range:", chart_range)
+    supply_schedule = [{'from': start_time, 'to': end_time, 'ranges': [chart_range], 'stepmode': 'fixed'}]
+    demand_schedule = [{'from': start_time, 'to': end_time, 'ranges': [chart_range], 'stepmode': 'fixed'}]
+    order_interval = st.slider("Select Order Interval (Update Interval)", 1, 100, 60,1)
+    time_mode=st.selectbox("Select Time Mode", ["periodic","drip-fixed", "drip-jitter", "drip-poisson"])
+    order_sched = {'sup': supply_schedule, 'dem': demand_schedule, 'interval': order_interval, 'timemode': str(time_mode)}
+    st.caption("Verbose is false by default. It can be turned on to see large output.")
+    verbose = False
+    tdump=open('data/demo/avg_balance.csv', 'w')
+    trial_id = 'data/demo/demo_'
+    dump_flags = {'dump_blotters': True, 'dump_lobs': False, 'dump_strats': True, 'dump_avgbals': True, 'dump_tape': True}
+    prices_fname = trial_id + '_tape.csv'
+    robot_traders = st.multiselect("Select Robot Traders", ["ZIP", "ZIC", "SHVR", "GVWY","SNPR","ZIPSH"], default=["ZIP"])
+    number_of_traders = st.slider("Select Number of Traders", 1, 100, 11,1)
+    sellers_spec = []
+    for robot in robot_traders:
+        sellers_spec.append((robot, number_of_traders))
+    buyers_spec = sellers_spec
+
+    st.write("Sellers Spec:", sellers_spec)
+    traders_spec = {'sellers':sellers_spec, 'buyers':buyers_spec}
+
+    n_sessions = st.slider("Select Number of Sessions", 1, 100, 1)
+
+    x = np.empty(0)
+    y = np.empty(0)
+
+    for sess in range(n_sessions):
+        trial_id = 'data/demo/demo_' + str(sess)
+
+        market_session(trial_id, start_time, end_time, traders_spec, order_sched, dump_flags, verbose)
+
+        prices_fname = trial_id + '_tape.csv'
+        with open(prices_fname, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                time = float(row[1])
+                price = float(row[2])
+                x = np.append(x,time)
+                y = np.append(y,price)
+
+    fig, ax = plt.subplots()
+    ax.plot(x, y, 'x', color='black')
+    ax.set(xlabel='Time', ylabel='Price', title='Demo Simulator Market')
+    st.pyplot(fig, format='png', use_container_width=True)
     
     st.write("Under Construction")
 
